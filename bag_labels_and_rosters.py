@@ -10,6 +10,7 @@ from reportlab.lib.units import inch
 
 import labels
 from reportlab.graphics import shapes
+from PIL import Image
 
 
 def main(data):
@@ -44,7 +45,10 @@ def main(data):
     for (day, time, exam_title), exam_rooms_df in exam_book_df.groupby(
         ["Day", "Time", "Exam Title"]
     ):
-        filename = f"output/{administration}/BagLabels/Day{str(day).zfill(2)}_{time}_{exam_title}.pdf"
+        day_as_str = pd.to_datetime(day).strftime("%Y-%m-%d")
+        filename = (
+            f"output/{administration}/BagLabels/{day_as_str}_{time}_{exam_title}.pdf"
+        )
         exam_flowables = []
         for (room), sections_in_room_df in exam_rooms_df.groupby("Room"):
             room_flowables = return_bag_label.main(sections_in_room_df)
@@ -68,7 +72,7 @@ def main(data):
         279.4,
         3,
         6,
-        69,
+        68,
         45,
         corner_radius=2,
         left_margin=5,
@@ -87,10 +91,25 @@ def main(data):
         exam_book_df, left_on=["Course", "Section"], right_on=["Course Code", "Section"]
     )
 
+    ## calculator numbers by room by day used
+
+    calculators_pvt = pd.pivot_table(
+        registered_students_df[
+            registered_students_df["Course"].str[0].isin(["M", "S"])
+        ],
+        values="StudentID",
+        columns=["Day", "Time"],
+        index="Room_y",
+        aggfunc="count",
+    )
+
     for (day, time, exam_title), students_df in registered_students_df.groupby(
         ["Day", "Time", "Exam Title"]
     ):
-        filename = f"output/{administration}/Rosters/Day{str(day).zfill(2)}_{time}_{exam_title}.pdf"
+        day_as_str = pd.to_datetime(day).strftime("%Y-%m-%d")
+        filename = (
+            f"output/{administration}/Rosters/{day_as_str}_{time}_{exam_title}.pdf"
+        )
         roster_lst = []
         for room, students_in_room_df in students_df.groupby("Room_y"):
             # filename = f"output/{administration}/Rosters/Day{str(day).zfill(2)}_{time}_{exam_title}_{room}.pdf"
@@ -120,10 +139,8 @@ def draw_student_roster_label(label, width, height, obj):
     Room = obj.get("Room_y", "")
     Time_Alotted = obj.get("Time Alotted", "")
 
-    photo_str = f"{PHOTOS_DIRECTORY}/{StudentID}.jpg"
-    # photo_str = 'banana.jpg'
-
     if StudentID != "":
+
         label.add(
             shapes.String(
                 0,
@@ -192,17 +209,23 @@ def draw_student_roster_label(label, width, height, obj):
                 fontSize=11,
             )
         )
-
-        label.add(shapes.Image(x=95, y=0, width=90, height=90, path=photo_str))
+        # photo_str = 'banana.jpg'
+        try:
+            photo_str = f"{PHOTOS_DIRECTORY}/{StudentID}.jpg"
+            im = Image.open(photo_str)
+            label.add(shapes.Image(x=95, y=0, width=90, height=90, path=photo_str))
+        except FileNotFoundError:
+            pass
 
 
 def return_time_alotted(Type):
+    if "2x" in Type:
+        return "6 hours"
     if "1.5x" in Type:
         return "4.5 hours"
     if "enl" in Type:
         return "4.5 hours"
-    if "2x" in Type:
-        return "6 hours"
+
     if "SCRIBE" in Type:
         return "6 hours"
     return "3 hours"

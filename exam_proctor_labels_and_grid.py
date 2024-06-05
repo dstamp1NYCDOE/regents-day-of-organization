@@ -4,7 +4,7 @@ import utils
 
 import labels
 from reportlab.graphics import shapes
-
+import datetime as dt
 
 PADDING = 1
 specs = labels.Specification(
@@ -45,8 +45,7 @@ def main(data):
     proctor_assignments_df = proctor_assignments_df.sort_values(by=["Proctor"])
     proctor_assignments_df = proctor_assignments_df.merge(
         exam_book_df[["Day", "Time", "Room", "Type"]], on=["Day", "Time", "Room"]
-    ).drop_duplicates(subset=["Day", "Time", "Room","Proctor"])
-    print(proctor_assignments_df)
+    ).drop_duplicates(subset=["Day", "Time", "Room", "Proctor"])
 
     ## proctor labels
     for (day, time), proctors_df in proctor_assignments_df.groupby(["Day", "Time"]):
@@ -58,10 +57,12 @@ def main(data):
             & (proctor_schedule_df["Assignment"] == "SUB PROCTOR")
         ].to_dict("records")
 
+        day_as_str = pd.to_datetime(day).strftime("%Y-%m-%d")
+
         proctors_lst.extend(sub_proctors_lst)
         sheet = labels.Sheet(specs, draw_proctor_label, border=True)
         sheet.add_labels(proctors_lst)
-        filename = f"output/{administration}/ProctorLabels/Day{str(day).zfill(2)}_{time}_ProctorLabels.pdf"
+        filename = f"output/{administration}/ProctorLabels/{day_as_str}_{time}_ProctorLabels.pdf"
         sheet.save(filename)
 
     ## proctor_assignment_grid
@@ -69,7 +70,9 @@ def main(data):
     for (day, time, course), exam_rooms_df in exam_book_df.drop_duplicates(
         subset=["Course Code", "Room"]
     ).groupby(["Day", "Time", "Course Code"]):
-        rooms_lst = exam_rooms_df.sort_values(by=["Room"], ascending=False).to_dict("records")
+        rooms_lst = exam_rooms_df.sort_values(by=["Room"], ascending=False).to_dict(
+            "records"
+        )
         labels_lst = []
         for room in rooms_lst:
             labels_lst.append(room)
@@ -89,7 +92,8 @@ def main(data):
             labels_lst.extend(proctors_lst)
         sheet = labels.Sheet(specs, draw_room_label, border=True)
         sheet.add_labels(labels_lst)
-        filename = f"output/{administration}/RoomGrids/Day{str(day).zfill(2)}_{time}_{course}_RoomGrids.pdf"
+        day_as_str = pd.to_datetime(day).strftime("%Y-%m-%d")
+        filename = f"output/{administration}/RoomGrids/{day_as_str}_{time}_{course}_RoomGrids.pdf"
         sheet.save(filename)
 
     return True
@@ -106,7 +110,7 @@ def draw_room_label(label, width, height, obj):
 
     if exam_title:
         label.add(
-            shapes.String(4, 55, f"Day{Day}-{Time}", fontName="Helvetica", fontSize=10)
+            shapes.String(4, 55, f"{Day}-{Time}", fontName="Helvetica", fontSize=10)
         )
 
         label.add(
@@ -118,7 +122,7 @@ def draw_room_label(label, width, height, obj):
         )
     if Proctor:
         label.add(
-            shapes.String(4, 55, f"Day{Day}-{Time}", fontName="Helvetica", fontSize=10)
+            shapes.String(4, 55, f"{Day}-{Time}", fontName="Helvetica", fontSize=10)
         )
 
         label.add(shapes.String(4, 30, f"{Proctor}", fontName="Helvetica", fontSize=18))
@@ -135,9 +139,7 @@ def draw_proctor_label(label, width, height, obj):
     Day = obj.get("Day")
     Room = obj.get("Room", "")
 
-    label.add(
-        shapes.String(4, 55, f"Day{Day}-{Time}", fontName="Helvetica", fontSize=10)
-    )
+    label.add(shapes.String(4, 55, f"{Day}-{Time}", fontName="Helvetica", fontSize=10))
 
     label.add(shapes.String(4, 30, f"{nickname}", fontName="Helvetica", fontSize=18))
 
@@ -145,5 +147,5 @@ def draw_proctor_label(label, width, height, obj):
 
 
 if __name__ == "__main__":
-    data = {"Administration": "January2024"}
+    data = {"Administration": "June2024"}
     main(data)

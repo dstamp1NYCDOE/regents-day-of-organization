@@ -100,6 +100,7 @@ def return_regents_day(col_str):
 
 
 def return_regents_day_from_date_str(date_str):
+    return date_str
     if date_str == "1/23/2024":
         return 1
     if date_str == "1/24/2024":

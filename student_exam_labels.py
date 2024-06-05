@@ -50,10 +50,16 @@ def main(data):
         exam_book_df, left_on=["Course", "Section"], right_on=["Course Code", "Section"]
     )
 
+    print(registered_students_df)
+
     for (day, time, exam_title), students_df in registered_students_df.groupby(
         ["Day", "Time", "Exam Title"]
     ):
-        filename = f"output/{administration}/ExamLabels/Day{str(day).zfill(2)}_{time}_{exam_title}.pdf"
+        day_as_str = pd.to_datetime(day).strftime("%Y-%m-%d")
+        filename = (
+            f"output/{administration}/ExamLabels/{day_as_str}_{time}_{exam_title}.pdf"
+        )
+
         labels_to_make = []
         for room, students_in_room_df in students_df.groupby("Room_y"):
             previous_remainder = len(labels_to_make) % 30
@@ -88,7 +94,7 @@ def main(data):
                     blanks_to_add += 2
                 elif len(labels_to_make) % 3 == 2:
                     blanks_to_add += 1
-                if (len(labels_to_make)+blanks_to_add) % 30 != 0:
+                if (len(labels_to_make) + blanks_to_add) % 30 != 0:
                     blanks_to_add += 3
             for i in range(blanks_to_add):
                 labels_to_make.append({})
@@ -101,7 +107,11 @@ def main(data):
     for (day, time, exam_title), students_df in registered_students_df.groupby(
         ["Day", "Time", "Exam Title"]
     ):
-        filename = f"output/{administration}/SARs/Day{str(day).zfill(2)}_{time}_{exam_title}_SAR.pdf"
+        day_as_str = pd.to_datetime(day).strftime("%Y-%m-%d")
+        filename = (
+            f"output/{administration}/SARs/{day_as_str}_{time}_{exam_title}_SAR.pdf"
+        )
+
         SAR_flowables_lst = []
         for (section), students_in_section_df in students_df.groupby("Section"):
             SAR_flowables = return_SAR_flowables.main(students_in_section_df)
@@ -186,6 +196,7 @@ def return_exam_name(course):
         "SXRK": "LivEnv",
         "HXRC": "Global Hist",
         "MXRC": "Algebra I",
+        "MXRF": "Algebra I",
         "SXRX": "Chemistry",
         "SXRU": "Earth Sci",
         "MXRK": "Geometry",
@@ -410,5 +421,5 @@ def return_language_name(HomeLangCode):
 
 
 if __name__ == "__main__":
-    data = {"Administration": "January2024"}
+    data = {"Administration": "June2024"}
     main(data)

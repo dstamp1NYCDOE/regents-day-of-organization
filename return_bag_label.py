@@ -79,7 +79,87 @@ def main(sections_df):
     }
 
     sections_table = return_df_as_table(sections_df)
-    flowables.append(sections_table)
+    section_types = sections_df["Type"].to_list()
+
+    chart_style = TableStyle(
+        [
+            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ]
+    )
+
+    checklist_flowables = [
+        Paragraph(f"Exam Booklets", styles["Normal"]),
+    ]
+
+    if exam_title in ["ELA", "Global", "USH"]:
+        checklist_flowables.append(Paragraph(f"Essay Booklets", styles["Normal"]))
+    if exam_title in ["ES", "Chem", "Phys"]:
+        checklist_flowables.append(Paragraph(f"Answer Booklets", styles["Normal"]))
+        checklist_flowables.append(Paragraph(f"Reference Tables", styles["Normal"]))
+    if exam_title in ["Phys"]:
+        checklist_flowables.append(Paragraph(f"Centimeter Rulers", styles["Normal"]))
+        checklist_flowables.append(Paragraph(f"Protractors", styles["Normal"]))
+    if exam_title in ["Alg1", "Alg2", "Geo"]:
+        checklist_flowables.append(Paragraph(f"Straight Edge", styles["Normal"]))
+    if exam_title in ["Geo"]:
+        checklist_flowables.append(Paragraph(f"Compasses", styles["Normal"]))
+
+    checklist_flowables.append(
+        Paragraph(f"Section Attendance Rosters (SAR)", styles["Normal"])
+    )
+    checklist_flowables.append(Paragraph(f"Part 1 Bubble Sheets", styles["Normal"]))
+    checklist_flowables.append(Paragraph(f"Student Labels", styles["Normal"]))
+    checklist_flowables.append(Paragraph(f"Proctoring Directions", styles["Normal"]))
+    checklist_flowables.append(Paragraph(f"Bathroom Pass", styles["Normal"]))
+
+    enl_flag = False
+    for section_type in section_types:
+        if "enl" in section_type.lower():
+            enl_flag = True
+
+    if enl_flag:
+        checklist_flowables.append(
+            Paragraph(f"Alt Language Glossaries", styles["Normal"])
+        )
+        checklist_flowables.append(
+            Paragraph(f"Alt Language Exam Books", styles["Normal"])
+        )
+
+    qr_flag = False
+    for section_type in section_types:
+        if "qr" in section_type.lower():
+            qr_flag = True
+
+    scribe_flag = False
+    for section_type in section_types:
+        if "scribe" in section_type.lower():
+            scribe_flag = True
+            qr_flag = True
+
+    if qr_flag:
+        checklist_flowables.append(
+            Paragraph(f"Questions Read Tip Sheet", styles["Normal"])
+        )
+    if scribe_flag:
+        checklist_flowables.append(
+            Paragraph(f"Scribe tip sheet", styles["Normal"])
+        )
+
+    checklist_flowables = ListFlowable(
+        checklist_flowables,
+        bulletType="bullet",
+        start="squarelrs",
+    )
+
+    flowables.append(
+        Table(
+            [[sections_table, checklist_flowables]],
+            colWidths=[5 * inch, 3 * inch],
+            style=chart_style,
+        )
+    )
+    # flowables.append(sections_table)
 
     flowables.append(Spacer(0 * inch, 1 * inch))
 
@@ -109,8 +189,8 @@ def main(sections_df):
 def return_exam_dropoff_location(exam_title):
     if exam_title == "ELA":
         return "227"
-    elif exam_title in ['Global','USH']:
-        return '427'
+    elif exam_title in ["Global", "USH"]:
+        return "427"
     else:
         return "202"
 
