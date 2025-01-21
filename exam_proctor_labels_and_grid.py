@@ -96,6 +96,9 @@ def main(data):
         filename = f"output/{administration}/RoomGrids/{day_as_str}_{time}_{course}_RoomGrids.pdf"
         sheet.save(filename)
 
+
+
+
     return True
 
 

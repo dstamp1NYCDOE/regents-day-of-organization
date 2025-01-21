@@ -195,6 +195,7 @@ def return_exam_name(course):
         "EXRC": "ELA",
         "SXRK": "LivEnv",
         "HXRC": "Global Hist",
+        "HXRK": "USH",
         "MXRC": "Algebra I",
         "MXRF": "Algebra I",
         "SXRX": "Chemistry",
